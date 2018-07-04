@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "variables.h"
 int e = 6;
 int add(int a, int b)
 {
