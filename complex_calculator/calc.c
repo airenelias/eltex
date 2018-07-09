@@ -29,15 +29,15 @@ int main()
 	float re=0; float im=0;
 	float A[2] = {0,0};
 	struct complex *number = &A;
-	int loop=1;
-	while(loop==1)
+	printf("Input format: \"Operation Real Imaginary\", q to exit.\n");
+	while(1)
 	{
-		//printf("%d+%di\n", number->re,number->im);
-		//scanf("%c",&operation);
-		//scanf("%d%d",&re,&im);
+		printf("%f+%fi\n", number->re,number->im);
+		scanf(" %c",&operation);
+		if(operation=='q') break;
+		scanf(" %f %f",&re,&im);
 		switch(operation)
 		{
-			case 'q': loop=0; break;
 			case '+': add(number,re,im); break;
 			case '-': sub(number,re,im); break;
 			case '*': mul(number,re,im); break;
