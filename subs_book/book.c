@@ -15,10 +15,9 @@ int book_add(struct book* bk, char* name, char* number)
 	new_entry->name = name;
 	new_entry->number = number;
 	new_entry->next = NULL;
-	if (bk->head != NULL && bk->tail != NULL)
+	if (bk->head != NULL)
 	{
-		struct book_entry *temp_entry = bk->tail;
-		temp_entry->next = new_entry;
+		bk->tail->next = new_entry;
 		bk->tail = new_entry;
 		return 0;
 	}
@@ -104,7 +103,6 @@ int book_clear(struct book* bk)
 		return 0;
 	}
 	struct book_entry *entry;
-	struct book_entry *temp_entry;
 	struct book_entry *prev_entry;
 	entry = bk->head;
 	while(1)
@@ -119,9 +117,8 @@ int book_clear(struct book* bk)
 		}
 		else 
 		{
-			temp_entry = entry;
+			prev_entry = entry;
 			entry = entry->next;
-			prev_entry = temp_entry;
 			free(prev_entry->name);
 			free(prev_entry->number);
 			free(prev_entry);
