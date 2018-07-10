@@ -98,7 +98,11 @@ int book_list(struct book* bk)
 
 int book_clear(struct book* bk)
 {
-	if(bk->head == NULL) return 0;
+	if(bk->head == NULL)
+	{
+		free(bk);
+		return 0;
+	}
 	struct book_entry *entry;
 	struct book_entry *temp_entry;
 	struct book_entry *prev_entry;

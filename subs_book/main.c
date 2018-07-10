@@ -14,8 +14,6 @@ int main()
 		{
 			case 0:
 			{
-				free(name);
-				free(number);
 				return 0;
 				break;
 			}
@@ -36,6 +34,7 @@ int main()
 				scanf(" %s", name);
 				if(book_remove(new_book, book_find(new_book, name)) == 0)
 					printf("Successfuly removed.\n\n");
+				free(name);
 				break;
 			}
 			case 3:
@@ -45,6 +44,7 @@ int main()
 				scanf(" %s", name);
 				if(book_find(new_book, name) != NULL)
 					printf("Successfuly found.\n\n");
+				free(name);
 				break;
 			}
 			case 4:
