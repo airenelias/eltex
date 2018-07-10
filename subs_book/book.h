@@ -10,8 +10,8 @@ struct book_entry
 
 struct book
 {
-	struct entry *head;
-	struct entry *tail;
+	struct book_entry *head;
+	struct book_entry *tail;
 };
 
 struct book* book_init();
