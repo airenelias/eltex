@@ -3,7 +3,7 @@
 
 struct book* book_init()
 {
-	struct book *new_book = malloc(sizeof(struct book));
+	struct book *new_book = calloc(NULL, sizeof(struct book));
 	new_book->head = NULL;
 	new_book->tail = NULL;
 	return new_book;
@@ -40,7 +40,7 @@ struct book_entry *book_find(struct book* bk, char* name)
 	{
 		if(strcmp(entry->name,name) == 0)
 		{
-			printf("Found: %s %s\n", entry->name, entry->number);
+			printf("F | %s %s\n", entry->name, entry->number);
 			return entry;
 		}
 		if(entry->next == NULL) return NULL;
@@ -89,11 +89,11 @@ int book_list(struct book* bk)
 	entry = bk->head;
 	while(1)
 	{
-		printf("Info:  %s %s\n", entry->name, entry->number);
-		if(entry->next == NULL) return 1;
+		printf("L | %s %s\n", entry->name, entry->number);
+		if(entry->next == NULL) return 0;
 		else entry = entry->next;
 	}
-	return 0;
+	return 1;
 }
 
 int book_clear(struct book* bk)
@@ -101,9 +101,8 @@ int book_clear(struct book* bk)
 	if(bk->head == NULL) return 0;
 	struct book_entry *entry;
 	struct book_entry *temp_entry;
-	struct book_entry *next_entry;
+	struct book_entry *prev_entry;
 	entry = bk->head;
-	next_entry = entry->next;
 	while(1)
 	{
 		if(entry->next == NULL)
@@ -116,12 +115,12 @@ int book_clear(struct book* bk)
 		}
 		else 
 		{
-			temp_entry = next_entry;
-			next_entry = entry->next;
-			entry = temp_entry;
-			free(entry->name);
-			free(entry->number);
-			free(entry);
+			temp_entry = entry;
+			entry = entry->next;
+			prev_entry = temp_entry;
+			free(prev_entry->name);
+			free(prev_entry->number);
+			free(prev_entry);
 		}
 	}
 	return 1;
