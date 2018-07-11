@@ -4,8 +4,6 @@
 struct book* book_init()
 {
 	struct book *new_book = calloc(1, sizeof(struct book));
-	new_book->head = NULL;
-	new_book->tail = NULL;
 	return new_book;
 }
 
