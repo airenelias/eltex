@@ -13,31 +13,39 @@ int main()
 
 	char **libraries;
 	int libcount;
-	libraries = malloc(0);
-	libcount = liblist(libraries);
+	libcount = liblist(&libraries);
 
-	void **handlers = malloc(libcount * sizeof(void*));
-	libopen(libraries, handlers, libcount);
+	void **handlers;
+	libopen(libraries, &handlers, libcount);
 
-	char **function_names = malloc(0);
 	int funcount;
-	void (**functions)(struct complex*, float, float) = malloc(0);
-	funcount = funclist(libraries, handlers, function_names, functions, libcount);
-
+	char **function_names;
+	void (**functions)(struct complex*, float, float);
+	funcount = funclist(libraries, handlers, &function_names, &functions, libcount);
 	
-	printf("Input format: \"Operation Real Imaginary\", 0 to exit.\nExamples: \"+ 2 2\" or \"* 3 4\".\nAvailable operations:\n");
+	printf("\nInput format: \"Operation Real Imaginary\", -1 to exit.\nFor example: \"+ 2 2\" or \"* 3 4\".\n Available operations:\n");
 	for(i = 0; i < funcount; i++)
 	{
-		printf("%d. %s\n", i, function_names[i]);
+		printf(" %d. %s\n", i, function_names[i]);
 	}
 
 	while(1)
 	{
 		printf("%f+%fi\n", ptr->re, ptr->im);
 		scanf(" %d",&operation);
-		if(operation==0) break;
+		if(operation==-1) break;
 		scanf(" %f %f",&re,&im);
 		functions[operation](ptr, re, im);
 	}
+	
+	free(functions);
+	free(function_names);
+	for(i=0;i<libcount;i++)
+	{
+		dlclose(handlers[i]);
+		free(libraries[i]);
+	}
+	free(handlers);
+	free(libraries);
 	return 0;
 }

@@ -11,9 +11,9 @@ struct complex {
 	float im;
 };
 
-int liblist (char**);
-int libopen (char**, void**, int);
-int funclist(char**, void**, char**, void (**)(struct complex*, float, float), int);
+int liblist (char***);
+int libopen (char**, void***, int);
+int funclist(char**, void**, char***, void (***)(struct complex*, float, float), int);
 void pluginfo(void*, plugin*);
 void add(struct complex*, float, float);
 void sub(struct complex*, float, float);

@@ -1,11 +1,9 @@
-all : directories bin/main.o bin/libcalc.a
-	gcc -o calc bin/main.o -Lbin -lcalc -static
+all : directories bin/main.o bin/calc.o
+	gcc -o calc bin/main.o bin/calc.o -ldl
 bin/main.o : src/main.c include/calc.h
 	gcc -o bin/main.o -c src/main.c
-bin/libcalc.a : bin/calc.o
-	ar -rc bin/libcalc.a bin/calc.o
 bin/calc.o : src/calc.c include/calc.h
-	gcc -o bin/calc.o -c src/calc.c 
+	gcc -o bin/calc.o -c src/calc.c
 directories :
 	mkdir -p bin
 clean : 
