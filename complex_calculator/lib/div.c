@@ -2,7 +2,7 @@
 
 void info(plugin *plug) {
 	plug->name = "Division";
-	plug->functions = "div&";
+	plug->functions = "div";
 	plug->description = "A division plugin.";
 }
 

@@ -2,7 +2,7 @@
 
 void info(plugin *plug) {
 	plug->name = "Addition";
-	plug->functions = "add&";
+	plug->functions = "add";
 	plug->description = "An addition plugin.";
 }
 

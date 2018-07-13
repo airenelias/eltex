@@ -2,7 +2,7 @@
 
 void info(plugin *plug) {
 	plug->name = "Substraction";
-	plug->functions = "sub&";
+	plug->functions = "sub";
 	plug->description = "A substraction plugin.";
 }
 

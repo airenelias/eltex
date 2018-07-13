@@ -2,7 +2,7 @@
 
 void info(plugin *plug) {
 	plug->name = "Multiplication";
-	plug->functions = "mul&";
+	plug->functions = "mul";
 	plug->description = "A multiplication plugin.";
 }
 

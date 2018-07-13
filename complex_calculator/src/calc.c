@@ -20,6 +20,12 @@ int liblist(char **libraries)
 			*(library + i) = *(t_path + i);
 		libraries[size - 1] = library;
 
+		//char **library = realloc(libraries, size * sizeof(char**));
+		//*library = malloc(path_len * sizeof(char));
+		//for(i = 0; i < path_len; i++)
+		//	*(library + i) = *(t_path + i);
+		//libraries[size - 1] = library;
+
 		printf("Continue? [y/n]\n");
 		scanf(" %c", &continue_answer);
 		if(continue_answer == 'y')
@@ -44,23 +50,23 @@ int libopen(char **libraries, void **handlers, int count)
 int funclist(char **libraries, void **handlers, char **function_names, void (**functions)(struct complex*,float,float), int count)
 {
 	int i = 0, j = 0, funcount = 0;
-	char **funcarray = malloc(0);
-	char *function = malloc(10);
-	char *func_name_ptr =malloc(sizeof(char*));
-	void (*function_pointer)(struct complex*, float, float);
+	char *function_name;
 	plugin *plug = malloc(sizeof(plugin));
 	for(i = 0; i < count; i++)
 	{
 		pluginfo(handlers[i], plug);
-		function = strtok(plug->functions,"&");
-		while(function != NULL)
+		function_name = strtok(plug->functions,"&");
+		while(function_name != NULL)
 		{
 			funcount++;
-			func_name_ptr = realloc(function_names, funcount * sizeof(char**));
-			func_name_ptr = function;
-			function_pointer = realloc(functions, funcount * sizeof(void*));
-			function_pointer = dlsym(handlers[i],function);
-			function = strtok(NULL,"&");
+			char *func_name_ptr = realloc(function_names, funcount * sizeof(char**));
+			func_name_ptr = malloc(10*sizeof(char*));
+			*func_name_ptr = *function_name;
+			function_names[funcount-1]=func_name_ptr;
+			void (**function_pointer)(struct complex*, float, float) = realloc(functions, funcount * sizeof(void**));
+			//function_pointer = malloc(sizeof(void*));
+			*function_pointer = dlsym(handlers[i],function_name);
+			function_name = strtok(NULL,"&");
 		}
 	}
 	return funcount;
