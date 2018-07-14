@@ -23,7 +23,7 @@ int main()
 	void (**functions)(struct complex*, float, float);
 	funcount = funclist(libraries, handlers, &function_names, &functions, libcount);
 	
-	printf("\nInput format: \"Operation Real Imaginary\", -1 to exit.\nFor example: \"+ 2 2\" or \"* 3 4\".\n Available operations:\n");
+	printf("\nInput format: \"<Operation> <Real> <Imaginary>\", -1 to exit.\nFor example: \"0 2 2\" or \"1 3 4\".\n Available operations:\n");
 	for(i = 0; i < funcount; i++)
 	{
 		printf(" %d. %s\n", i, function_names[i]);

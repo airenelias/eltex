@@ -58,10 +58,8 @@ int funclist(char **libraries, void **handlers, char ***function_names, void (**
 		{
 			funcount++;
 			*function_names = realloc(*function_names, funcount * sizeof(char**));
-			//(*function_names)[funcount - 1] = malloc(strlen(function_name) * sizeof(char*));
 			(*function_names)[funcount - 1] = function_name;
 			*functions = realloc(*functions, funcount * sizeof(void (**)(struct complex*,float,float)));
-			//(*functions)[funcount - 1] = malloc(sizeof(void (*)(struct complex*,float,float)));
 			(*functions)[funcount - 1] = dlsym(handlers[i], function_name);
 			function_name = strtok(NULL,"&");
 		}
