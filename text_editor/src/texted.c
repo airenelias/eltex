@@ -82,7 +82,6 @@ void opentexted(texted *editor)
 	char *name = edithead(editor);
 	openfile(editor, name);
 	free(name);
-	
 	wmove(editor->textfield, editor->cury, editor->curx);
 }
 
@@ -163,8 +162,9 @@ void edittexted(texted *editor)
 			if(curx >= maxx-1) curx = maxx-1;
 			if(cury >= maxy-1) cury = maxy-1;
 		}
-		
 		wrefresh(editor->textfield);
 	}
+	delwin(editor->head);
+	delwin(editor->textfield);
 	endwin();
 }
