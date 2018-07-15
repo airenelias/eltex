@@ -1,9 +1,9 @@
-#include "texted.h"
+#include "../include/texted.h"
 #define BUF_SIZE 256
 
 void starttexted(char* name, char* text, int cury, int curx)
 {
-	texted_config editor_conf = inittextedparams("", "", 0, 0);
+	texted_config editor_conf = inittextedparams(name, text, cury, curx);
 	texted editor = inittexted(editor_conf);
 	edittexted(&editor);
 }
@@ -20,7 +20,10 @@ void openfile(texted* editor, char* filename)
 	int lines = 0;
 	FILE *file = fopen(filename, "r");
 	if(file == NULL) 
-		wprintw(editor->head, "No file");
+	{
+		mvwhline(editor->head, 0, 0, ACS_HLINE, strlen(filename));
+		wprintw(editor->head, "No File");
+	}
 	else
 	{
 		wclear(editor->textfield);
@@ -32,6 +35,7 @@ void openfile(texted* editor, char* filename)
 		fclose(file);
 	}
 	free(buf);
+	wrefresh(editor->head);
 	editor->lines = lines;
 }
 
@@ -52,6 +56,7 @@ texted inittexted(texted_config conf)
 
 	wbkgd(scr, COLOR_PAIR(1));
 	box(scr, ACS_VLINE, ACS_HLINE);
+	mvwprintw(scr, maxy - 1, 3, "F1:Open F2:Save F3:Quit");
 	refresh();
 
 	head = derwin(scr, 1, maxx-5, 0, 2);
@@ -77,61 +82,65 @@ void opentexted(texted *editor)
 	char *name = edithead(editor);
 	openfile(editor, name);
 	free(name);
+	
+	wmove(editor->textfield, editor->cury, editor->curx);
 }
 
 void savetexted(texted *editor)
 {
-	int i=0;
-
+	int i=0, c=0;
 	char *buf = edithead(editor);
 
 	FILE *file = fopen(buf, "w");
 	if(file == NULL) perror("Can't open a file.");
 	for(i = 0; i < editor->lines; i++) {
+		c = 0;
 		mvwinnstr(editor->textfield, i, 0, buf, BUF_SIZE);
-		fprintf(file, "%s\n", buf);
+		while(buf[c] != 32 || buf[c+1] != 32) {
+			fwrite(&buf[c], sizeof(char), 1, file);
+			c++;
+		}
+		//fwrite(buf, sizeof(char), strlen(buf), file);
+		fwrite("\n", sizeof(char), 1, file);
 	}
 	fclose(file);
 	free(buf);
+	wmove(editor->textfield, editor->cury, editor->curx);
 }
 
 char* edithead(texted *editor)
 {
+	int ch = -1, cury, curx=0;
 	int maxx = getmaxx(editor->head);
 	char *buf = malloc(BUF_SIZE);
 
 	mvwhline(editor->head, 0, 0, ACS_HLINE, maxx);
 	wmove(editor->head, 0, 0);
-
-	int ch = -1, cury, curx=0;
-
 	while(1) {
 		ch = wgetch(editor->head);
 		if(ch==10) break;
 		switch(ch) {
-			case KEY_BACKSPACE: curx--; mvdelch(0, curx); break;
-			default: mvaddch(ch, cury, curx); curx++; break;
+			//case 8: curx--; mvdelch(0, curx); break;
+			default: mvaddch(ch, 0, curx); curx++; break;
 		}
 		wmove(editor->head, 0, curx);
 		wrefresh(editor->head);
 	}
-
 	mvwinnstr(editor->head, 0, 0, buf, curx);
-
 	return buf;
 }
 
 void edittexted(texted *editor)
 {
-	int ch = -1, y, x, cury, curx;
+	int ch = -1, maxy, maxx, cury, curx;
 	getyx(editor->textfield, cury, curx);
-	getmaxyx(editor->textfield, y, x);
-
+	getmaxyx(editor->textfield, maxy, maxx);
+	wmove(editor->textfield, cury, curx);
 	while(1) {
 		if(cury + 1 > editor->lines) editor->lines = cury + 1;
 		ch = wgetch(editor->textfield);
-		if(ch == KEY_F(1)) { opentexted(editor); continue; }
-		if(ch == KEY_F(2)) { savetexted(editor); continue; }
+		if(ch == KEY_F(1)) { editor->cury = 0; editor->curx = 0; cury = 0; curx = 0; opentexted(editor); continue; }
+		if(ch == KEY_F(2)) { editor->cury = cury; editor->curx = curx; savetexted(editor); continue; }
 		if(ch == KEY_F(3)) break;
 		switch(ch) {
 			case KEY_UP: cury--; break;
@@ -139,14 +148,20 @@ void edittexted(texted *editor)
 			case KEY_LEFT: curx--; break;
 			case KEY_RIGHT: curx++; break;
 			case 10: curx = 0; cury++; break;
-			default: if(curx < x-3) { mvaddch(ch, cury, curx); curx++;} break;
+			default:
+				if(curx < maxx-1) curx++;
+				else { curx = 0; cury++; }
+				mvaddch(ch, cury, curx);
+				break;
 		}
 
-		if(curx < x && cury < y) wmove(editor->textfield, cury, curx);
-		else
-		{
-			if(curx >= x-1) curx = x-1;
-			if(cury >= y-1) cury = y-1;
+		if(curx >= 0 && cury >=0 && curx < maxx && cury < maxy)
+			wmove(editor->textfield, cury, curx);
+		else {
+			if(curx < 0) curx = 0;
+			if(cury < 0) cury = 0;
+			if(curx >= maxx-1) curx = maxx-1;
+			if(cury >= maxy-1) cury = maxy-1;
 		}
 		
 		wrefresh(editor->textfield);

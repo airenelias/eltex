@@ -1,4 +1,4 @@
-#include "texted.h"
+#include "../include/texted.h"
 
 int main()
 {
