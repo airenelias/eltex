@@ -16,12 +16,16 @@ typedef struct {
 typedef struct {
 	WINDOW *head;
 	WINDOW *textfield;
-	int lines_count;
+	int cury;
+	int curx;
+	int lines;
 } texted;
 
-//void resizetexted(int);
+void starttexted(char*, char*, int, int);
 texted_config inittextedparams(char*, char*, int, int);
+void openfile(texted*, char*);
 texted inittexted(texted_config);
+char* edithead(texted*);
 void edittexted(texted*);
 void opentexted(texted*);
 void savetexted(texted*);
