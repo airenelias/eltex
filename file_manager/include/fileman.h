@@ -16,6 +16,7 @@ typedef struct {
 	struct dirent **namelist;
 	int n;
 	int cur;
+	int outbound;
 } fileman_win;
 
 typedef struct {
@@ -45,6 +46,6 @@ fileman_config initfilemanparams(char*, char*);
 fileman initfileman(fileman_config);
 void inputdir(fileman_win*);
 void mainfileman(fileman*);
-void printdir(fileman_win*, char*);
+void printdir(fileman_win*, char*, int);
 void deselectfileman(fileman_win*);
 void selectfileman(fileman_win*);
