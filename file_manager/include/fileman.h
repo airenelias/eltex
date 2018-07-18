@@ -10,6 +10,8 @@ Most unused ncurses file manager.
 
 #ifndef FILEMAN_H
 #define FILEMAN_H
+///Set maximum path length.
+#define BUF_PATH_SIZE 4096
 ///Struct that stores manager configurations.
 typedef struct {
 	char *dir_left; ///<	Left window filepath.

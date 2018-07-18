@@ -1,5 +1,4 @@
 #include "../include/fileman.h"
-#define BUF_SIZE 256
 
 void startfileman(char *dir_left, char *dir_right)
 {
@@ -22,7 +21,7 @@ fileman initfileman(fileman_config conf)
 	fileman_win win_left, win_right;
 
 	int maxy, maxx;
-	char *curdir = malloc(4096);
+	char *curdir = malloc(BUF_PATH_SIZE);
 
 	WINDOW *scr = initscr();
 	getmaxyx(scr, maxy, maxx);
@@ -46,15 +45,15 @@ fileman initfileman(fileman_config conf)
 	win_right.head = derwin(scr, 1, maxx/2-4-margin, 0, maxx/2+2);
 	win_left.list = derwin(scr, maxy-2, maxx/2-1, 1, 1);
 	win_right.list = derwin(scr, maxy-2, maxx/2-1-margin, 1, maxx/2+1);
-	win_left.dir = calloc(sizeof(char), 4096);
-	win_right.dir = calloc(sizeof(char), 4096);
+	win_left.dir = calloc(sizeof(char), BUF_PATH_SIZE);
+	win_right.dir = calloc(sizeof(char), BUF_PATH_SIZE);
 	win_left.outbound = 0;
 	win_right.outbound = 0;
 
 	manager.left = win_left;
 	manager.right = win_right;
 
-	getcwd(curdir, 4096);
+	getcwd(curdir, BUF_PATH_SIZE);
 	printdir(&manager.right, conf.dir_right, 1);
 	chdir(curdir);
 	printdir(&manager.left, conf.dir_left, 1);
@@ -76,7 +75,7 @@ void inputdir(fileman_win *win)
 	echo();
 	curs_set(1);
 	int ch = -1, curx = 0;
-	char *buf = malloc(BUF_SIZE);
+	char *buf = malloc(BUF_PATH_SIZE);
 
 	mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
 	wmove(win->head, 0, 0);
@@ -106,7 +105,7 @@ void printdir(fileman_win *win, char *dir, int new)
 		chdir(dir);
 		//if(chdir(dir) == 0)
 		//{
-			getcwd(win->dir, 4096);
+			getcwd(win->dir, BUF_PATH_SIZE);
 			win->cur = 0;
 		//}
 		mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
@@ -132,7 +131,7 @@ void printdir(fileman_win *win, char *dir, int new)
 void deselectfileman(fileman_win* win)
 {
 	char *buf = malloc(256);
-	mvwinnstr(win->list, win->cur - win->outbound, 0, buf, BUF_SIZE);
+	mvwinnstr(win->list, win->cur - win->outbound, 0, buf, BUF_PATH_SIZE);
 	if(win->namelist[win->cur]->d_type == 8)
 		wattron(win->list, COLOR_PAIR(3));
 	else
@@ -144,7 +143,7 @@ void deselectfileman(fileman_win* win)
 void selectfileman(fileman_win* win)
 {
 	char *buf = malloc(256);
-	mvwinnstr(win->list, win->cur - win->outbound, 0, buf, BUF_SIZE);
+	mvwinnstr(win->list, win->cur - win->outbound, 0, buf, BUF_PATH_SIZE);
 	if(win->namelist[win->cur]->d_type == 8)
 		wattron(win->list, COLOR_PAIR(4));
 	else
