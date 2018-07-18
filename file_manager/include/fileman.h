@@ -4,6 +4,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#ifndef FILEMAN_H
+#define FILEMAN_H
 typedef struct {
 	char *dir_left;
 	char *dir_right;
@@ -49,3 +51,4 @@ void mainfileman(fileman*);
 void printdir(fileman_win*, char*, int);
 void deselectfileman(fileman_win*);
 void selectfileman(fileman_win*);
+#endif

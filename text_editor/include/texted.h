@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef TEXTED_H
+#define TEXTED_H
 typedef struct {
 	char *name;
 	char *text;
@@ -29,3 +31,4 @@ char* edithead(texted*);
 void edittexted(texted*);
 void opentexted(texted*);
 void savetexted(texted*);
+#endif
