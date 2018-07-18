@@ -1,5 +1,5 @@
 /** \mainpage FileMan
-\brief Ncurses file manager.
+Most unused ncurses file manager.
 */
 
 #include <stdio.h>
