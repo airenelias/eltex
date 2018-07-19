@@ -7,21 +7,23 @@ int main()
 	int pid1 = fork();
 	if(pid1 == 0)
 	{
-		printf("2 my=%d pid=%d ppid=%d\n",pid1, getpid(), getppid());
+		printf("\n2 my=%d pid=%d ppid=%d",pid1, getpid(), getppid());
 		return 0;
 	}
 	else
 	{
-		printf("Pochemy 2 raza");
+		printf("This goes to buffer");
+		fflush(stdout); //flush or else child process will have same buffer as parent
 		int pid2 = fork();
 		if(pid2 == 0)
 		{
-			printf("3 my=%d pid=%d ppid=%d\n",pid2, getpid(), getppid());
+			printf("\n3 my=%d pid=%d ppid=%d",pid2, getpid(), getppid());
 			return 0;
 		}
 		else
 		{
-			printf("1 my=%d pid=%d ppid=%d\n",pid2, getpid(), getppid());
+			//its usually first, but \n clears buffer and it becomes last :(
+			printf("\n1 my=%d pid=%d ppid=%d",pid2, getpid(), getppid());
 			waitpid(pid1, &status, 0);
 			waitpid(pid2, &status, 0);
 		}
