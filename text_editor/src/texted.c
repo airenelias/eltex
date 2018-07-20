@@ -1,5 +1,4 @@
 #include "../include/texted.h"
-#define BUF_SIZE 256
 
 void starttexted(char* name, char* text, int cury, int curx, int close)
 {
@@ -16,7 +15,7 @@ texted_config inittextedparams(char* name, char* text, int cury, int curx)
 
 void openfile(texted* editor, char* filename)
 {
-	char *buf = malloc(BUF_SIZE);
+	char *buf = malloc(BUF_STR_SIZE);
 	int lines = 0;
 	FILE *file = fopen(filename, "r");
 	if(file == NULL) 
@@ -28,7 +27,7 @@ void openfile(texted* editor, char* filename)
 	{
 		wclear(editor->textfield);
 		wprintw(editor->head, filename);
-		while(fgets(buf, BUF_SIZE, file)!=NULL) {
+		while(fgets(buf, BUF_STR_SIZE, file)!=NULL) {
 			mvwprintw(editor->textfield, lines, 0, "%s", buf);
 			lines++;
 		}
@@ -94,7 +93,7 @@ void savetexted(texted *editor)
 	if(file == NULL) perror("Can't open a file.");
 	for(i = 0; i < editor->lines; i++) {
 		c = 0;
-		mvwinnstr(editor->textfield, i, 0, buf, BUF_SIZE);
+		mvwinnstr(editor->textfield, i, 0, buf, BUF_STR_SIZE);
 		while(buf[c] != 32 || buf[c+1] != 32) {
 			fwrite(&buf[c], sizeof(char), 1, file);
 			c++;
@@ -111,7 +110,7 @@ char* edithead(texted *editor)
 {
 	int ch = -1, cury, curx=0;
 	int maxx = getmaxx(editor->head);
-	char *buf = malloc(BUF_SIZE);
+	char *buf = malloc(BUF_STR_SIZE);
 
 	mvwhline(editor->head, 0, 0, ACS_HLINE, maxx);
 	wmove(editor->head, 0, 0);
