@@ -23,12 +23,12 @@ typedef struct {
 	int lines;
 } texted;
 
-void starttexted(char*, char*, int, int);
+void starttexted(char*, char*, int, int, int);
 texted_config inittextedparams(char*, char*, int, int);
 void openfile(texted*, char*);
 texted inittexted(texted_config);
 char* edithead(texted*);
-void edittexted(texted*);
+void edittexted(texted*, int);
 void opentexted(texted*);
 void savetexted(texted*);
 #endif

@@ -50,6 +50,7 @@ int main()
 			printf("1 pid=%d ppid=%d\n", getpid(), getppid());
 			waitpid(pid_2, NULL, 0);
 			waitpid(pid_3, NULL, 0);
+			getchar();
 			return 0;
 		}
 	}

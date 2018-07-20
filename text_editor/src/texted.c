@@ -1,11 +1,11 @@
 #include "../include/texted.h"
 #define BUF_SIZE 256
 
-void starttexted(char* name, char* text, int cury, int curx)
+void starttexted(char* name, char* text, int cury, int curx, int close)
 {
 	texted_config editor_conf = inittextedparams(name, text, cury, curx);
 	texted editor = inittexted(editor_conf);
-	edittexted(&editor);
+	edittexted(&editor, close);
 }
 
 texted_config inittextedparams(char* name, char* text, int cury, int curx)
@@ -129,7 +129,7 @@ char* edithead(texted *editor)
 	return buf;
 }
 
-void edittexted(texted *editor)
+void edittexted(texted *editor, int close)
 {
 	int ch = -1, maxy, maxx, cury, curx;
 	getyx(editor->textfield, cury, curx);
@@ -166,5 +166,6 @@ void edittexted(texted *editor)
 	}
 	delwin(editor->head);
 	delwin(editor->textfield);
-	endwin();
+	if(close)
+		endwin();
 }
