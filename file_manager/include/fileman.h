@@ -3,10 +3,14 @@ Most unused ncurses file manager.
 */
 
 #include <stdio.h>
-#include <curses.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <panel.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 
 #ifndef FILEMAN_H
 #define FILEMAN_H
@@ -24,13 +28,14 @@ typedef struct {
 	WINDOW *list; ///< 				Window displaying list of files.
 	char *dir; ///<					Current window directory.
 	struct dirent **namelist; ///<	List of files.
-	int n; ///<						Number of files.
+	int n; ///<					Number of files.
 	int cur; ///<					Current selection position.
 	int outbound; ///<				How much out of window bounds is selection.\warning Must be 0 or more. That means only downwards list movement allowed.
 } fileman_win;
 
 ///Struct that stores parameters manager.
 typedef struct {
+	WINDOW *back;
 	fileman_win left; ///<	Left manager window.
 	fileman_win right; ///<	Right manager window.
 	int active_win; ///<	Currently active window.\warning Must be 0 or 1 for left or right window respectively.
@@ -47,11 +52,13 @@ void startfileman(char*, char*);
 \param char* Left window filepath.
 \param char* Right window filepath.
 \warning Input paths is relative to current launch directory if not absolute.
+\return File manager configuration struct.
 */
 fileman_config initfilemanparams(char*, char*);
 
 /**Initialize manager window.
 \param fileman_config Configuration struct.
+\return fileman File manager.
 */
 fileman initfileman(fileman_config);
 
@@ -65,19 +72,28 @@ void inputdir(fileman_win*);
 */
 void mainfileman(fileman*);
 
-/**Print all files in directory.
-\param fileman_win* Print directory window.
-\param char* 		Path to print.\warning Input path is relative to current launch directory if not absolute.
-\param int 			Reinitialize window parameters.\warning Must be 1 if directory changes.
+/**Free used memory and close.
+\param fileman_win* 	Manager to close.
 */
-void printdir(fileman_win*, char*, int);
+void freefileman(fileman*);
+
+/**Set window path and reinitialize window variables.
+\param fileman_win* 	Set directory window.
+\param char* 		Path to set.\warning Input path is relative to current launch directory if not absolute.
+*/
+void setdir(fileman_win*, char*);
+
+/**Print all files in directory set in window.
+\param fileman_win* 	Print directory window.
+*/
+void printdir(fileman_win*);
 
 /**Remove highlight of menu element.
 \param fileman_win* Currently working window.
 */
 void deselectfileman(fileman_win*);
 
-/**Highlights menu element.
+/**Highlight menu element.
 \param fileman_win* Currently working window.
 */
 void selectfileman(fileman_win*);

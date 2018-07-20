@@ -1,4 +1,5 @@
 #include "../include/fileman.h"
+#include "../include/texted.h"
 
 void startfileman(char *dir_left, char *dir_right)
 {
@@ -25,7 +26,6 @@ fileman initfileman(fileman_config conf)
 
 	WINDOW *scr = initscr();
 	getmaxyx(scr, maxy, maxx);
-	noecho();
 	cbreak();
 	curs_set(0);
 	start_color();
@@ -37,6 +37,7 @@ fileman initfileman(fileman_config conf)
 	box(scr, ACS_VLINE, ACS_HLINE);
 	mvwvline(scr, 1, maxx/2, ACS_VLINE, maxy-2);
 	mvwprintw(scr, maxy-1, 3, "TAB:Switch F2:Path F3:Quit");
+	manager.back = scr;
 	refresh();
 
 	int margin = 0;
@@ -47,16 +48,18 @@ fileman initfileman(fileman_config conf)
 	win_right.list = derwin(scr, maxy-2, maxx/2-1-margin, 1, maxx/2+1);
 	win_left.dir = calloc(sizeof(char), BUF_PATH_SIZE);
 	win_right.dir = calloc(sizeof(char), BUF_PATH_SIZE);
-	win_left.outbound = 0;
-	win_right.outbound = 0;
+	win_left.outbound = win_left.n = 0;
+	win_right.outbound = win_right.n = 0;
 
 	manager.left = win_left;
 	manager.right = win_right;
 
 	getcwd(curdir, BUF_PATH_SIZE);
-	printdir(&manager.right, conf.dir_right, 1);
+	setdir(&manager.right, conf.dir_right);
+	printdir(&manager.right);
 	chdir(curdir);
-	printdir(&manager.left, conf.dir_left, 1);
+	setdir(&manager.left, conf.dir_left);
+	printdir(&manager.left);
 	free(curdir);
 
 	keypad(manager.right.list, true);
@@ -89,35 +92,37 @@ void inputdir(fileman_win *win)
 	mvwinnstr(win->head, 0, 0, buf, curx);
 	noecho();
 	curs_set(0);
-	printdir(win, buf, 1);
+	setdir(win, buf);
+	printdir(win);
 	free(buf);
 }
 
-void printdir(fileman_win *win, char *dir, int new)
+void setdir(fileman_win *win, char *dir)
 {
 	int i, y;
-	wclear(win->list);
-	if(win->outbound == 0 || new)
+	win->outbound = 0;
+	if(win->dir != NULL)
+		chdir(win->dir);
+	chdir(dir);
+	getcwd(win->dir, BUF_PATH_SIZE);
+	win->cur = 0;
+	mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
+	mvwprintw(win->head, 0, 0, "%s", win->dir);
+	wrefresh(win->head);
+	if(win->n > 0)
 	{
-		win->outbound = 0;
-		if(win->dir != NULL)
-			chdir(win->dir);
-		chdir(dir);
-		//if(chdir(dir) == 0)
-		//{
-			getcwd(win->dir, BUF_PATH_SIZE);
-			win->cur = 0;
-		//}
-		mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
-		mvwprintw(win->head, 0, 0, "%s", win->dir);
-		wrefresh(win->head);
 		for(i=0;i<win->n;i++)
 			free(win->namelist[i]);
 		free(win->namelist);
-		win->n = scandir(".", &win->namelist, NULL, alphasort);
 	}
-	//else
-		//win->cur = getmaxy(win->list-1);
+	win->n = scandir(".", &win->namelist, NULL, alphasort);
+	
+}
+
+void printdir(fileman_win *win)
+{
+	int i, y;
+	wclear(win->list);
 	for(i = win->outbound, y = 0; i < win->n; i++, y++)
 	{
 		if(win->namelist[i]->d_type == 8)
@@ -153,63 +158,9 @@ void selectfileman(fileman_win* win)
 	free(buf);
 }
 
-void mainfileman(fileman* manager)
+void freefileman(fileman* manager)
 {
-	manager->active_win = 0;
-	fileman_win *curwin = &manager->left;
-
-	int i, ch = -1, outbound = 0;
-
-	while(1) {
-		selectfileman(curwin);
-		ch = wgetch(curwin->list);
-		if(ch == KEY_F(2)) inputdir(curwin);
-		if(ch == KEY_F(3)) break;
-		switch(ch) {
-			case 9:
-				if(manager->active_win == 0) {
-					manager->active_win = 1;
-					curwin = &manager->right;
-				}
-				else {
-					manager->active_win = 0;
-					curwin = &manager->left;
-				}
-				break;
-			case 10:
-				printdir(curwin, curwin->namelist[curwin->cur]->d_name, 1);
-				break;
-			case KEY_UP:
-				if(curwin->cur > 0)
-				{
-					deselectfileman(curwin);
-					curwin->cur--;
-					selectfileman(curwin);
-				}
-				if(curwin->cur - curwin->outbound < 0)
-				{
-					curwin->outbound--;
-					printdir(curwin, curwin->namelist[curwin->cur]->d_name, 0);
-				}
-				break;
-			case KEY_DOWN:
-				if(curwin->cur < curwin->n - 1)
-				{
-					deselectfileman(curwin);
-					curwin->cur++;
-					selectfileman(curwin);
-				}
-				if(curwin->cur - curwin->outbound > getmaxy(curwin->list)-1)
-				{
-					curwin->outbound++;
-					printdir(curwin, curwin->namelist[curwin->cur]->d_name, 0);
-				}
-				break;
-			default: break;
-		}
-		wrefresh(curwin->list);
-	}
-
+	int i;
 	free(manager->left.dir);
 	free(manager->right.dir);
 	for(i=0;i<manager->left.n;i++)
@@ -224,4 +175,101 @@ void mainfileman(fileman* manager)
 	delwin(manager->right.list);
 	curs_set(1);
 	endwin();
+}
+
+void mainfileman(fileman* manager)
+{
+	manager->active_win = 0;
+	fileman_win *curwin = &manager->left;
+
+	int i, ch = -1, outbound = 0;
+
+	WINDOW *in_window;
+
+	while(1) {
+		selectfileman(curwin);
+		ch = wgetch(curwin->list);
+		if(ch == KEY_F(2)) inputdir(curwin);
+		if(ch == KEY_F(3)) break;
+		if(ch == KEY_F(4)) {
+			int pid, wpid;
+			if(pid = fork() == 0)
+			{
+				//char *buf = malloc(BUFSIZ);
+				//freopen("/dev/null", "a", stdout);
+				//setbuf(stdout, buf);
+				//char **arr_env = malloc(1*sizeof(char**));
+				//arr_env[0] = malloc(256*sizeof(char));
+				//arr_env[0] = strcat(curwin->dir, "/lib");
+				execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);//,arr_env);
+				//wprintw(manager->left.list, buf);
+				return;
+			}
+			else
+			{
+				while((wpid = wait(NULL)) > 0);
+				printdir(curwin);
+			}
+
+		}
+		if(ch == KEY_F(5)) {
+			pid_t pid, wpid;
+			if(pid = fork() == 0) {
+				echo();
+				starttexted(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), "", 0, 0, 0);
+				noecho();
+				return;
+			}
+			else
+			{
+				while((wpid = wait(NULL)) > 0);
+				printdir(curwin);
+			}
+		}
+		switch(ch) {
+			case 9:
+				if(manager->active_win == 0) {
+					manager->active_win = 1;
+					curwin = &manager->right;
+				}
+				else {
+					manager->active_win = 0;
+					curwin = &manager->left;
+				}
+				break;
+			case 10:
+				setdir(curwin, curwin->namelist[curwin->cur]->d_name);
+				printdir(curwin);
+				break;
+			case KEY_UP:
+				if(curwin->cur > 0)
+				{
+					deselectfileman(curwin);
+					curwin->cur--;
+					selectfileman(curwin);
+				}
+				if(curwin->cur - curwin->outbound < 0)
+				{
+					curwin->outbound--;
+					printdir(curwin);
+				}
+				break;
+			case KEY_DOWN:
+				if(curwin->cur < curwin->n - 1)
+				{
+					deselectfileman(curwin);
+					curwin->cur++;
+					selectfileman(curwin);
+				}
+				if(curwin->cur - curwin->outbound > getmaxy(curwin->list)-1)
+				{
+					curwin->outbound++;
+					printdir(curwin);
+				}
+				break;
+			default: break;
+		}
+		wrefresh(curwin->list);
+	}
+	freefileman(manager);
 }

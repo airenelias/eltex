@@ -1,5 +1,5 @@
 all : directories bin/main.o lib/libfileman.so
-	gcc -o fileman bin/main.o -Llib -lfileman -lncurses -g
+	gcc -o fileman bin/main.o -Llib -lfileman -ltexted -lncurses
 bin/main.o : src/main.c include/fileman.h
 	gcc -o bin/main.o -c src/main.c
 lib/libfileman.so : bin/fileman.o
