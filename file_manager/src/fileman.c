@@ -195,9 +195,13 @@ void mainfileman(fileman* manager)
 			int pid, wpid;
 			def_prog_mode();
 			endwin();
-			if(pid = fork() == 0)
-			{
-				execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);
+			system("clear");
+			if(pid = fork() == 0) {
+				int err;
+				err = execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);
+				if(err < 0) {
+					break;
+				}
 			}
 			while((wpid = wait(NULL)) > 0);
 			reset_prog_mode();
