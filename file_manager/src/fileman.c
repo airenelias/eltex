@@ -36,7 +36,7 @@ fileman initfileman(fileman_config conf)
 	wbkgd(scr, COLOR_PAIR(1));
 	box(scr, ACS_VLINE, ACS_HLINE);
 	mvwvline(scr, 1, maxx/2, ACS_VLINE, maxy-2);
-	mvwprintw(scr, maxy-1, 3, "TAB:Switch F2:Path F3:Quit");
+	mvwprintw(scr, maxy-1, 3, "TAB:Switch F2:Path F3:Quit F4:Exec F5:Edit");
 	manager.back = scr;
 	refresh();
 
@@ -193,24 +193,14 @@ void mainfileman(fileman* manager)
 		if(ch == KEY_F(3)) break;
 		if(ch == KEY_F(4)) {
 			int pid, wpid;
+			def_prog_mode();
+			endwin();
 			if(pid = fork() == 0)
 			{
-				//char *buf = malloc(BUFSIZ);
-				//freopen("/dev/null", "a", stdout);
-				//setbuf(stdout, buf);
-				//char **arr_env = malloc(1*sizeof(char**));
-				//arr_env[0] = malloc(256*sizeof(char));
-				//arr_env[0] = strcat(curwin->dir, "/lib");
-				execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);//,arr_env);
-				//wprintw(manager->left.list, buf);
-				return;
+				execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);
 			}
-			else
-			{
-				while((wpid = wait(NULL)) > 0);
-				printdir(curwin);
-			}
-
+			while((wpid = wait(NULL)) > 0);
+			reset_prog_mode();
 		}
 		if(ch == KEY_F(5)) {
 			pid_t pid, wpid;
