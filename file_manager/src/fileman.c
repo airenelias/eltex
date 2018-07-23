@@ -35,17 +35,20 @@ fileman initfileman(fileman_config conf)
 	init_pair(4, COLOR_GREEN, COLOR_WHITE);
 	wbkgd(scr, COLOR_PAIR(1));
 	box(scr, ACS_VLINE, ACS_HLINE);
-	mvwvline(scr, 1, maxx/2, ACS_VLINE, maxy-2);
-	mvwprintw(scr, maxy-1, 3, "TAB:Switch F2:Path F3:Quit F4:Exec F5:Edit");
-	manager.back = scr;
+	mvwvline(scr, 1, maxx/2, ACS_VLINE, maxy-3);
+	mvwaddch(scr, maxy-2, 0, ACS_LTEE);
+	mvwaddch(scr, maxy-2, maxx-1, ACS_RTEE);
+	mvwhline(scr, maxy-2, 1, ACS_HLINE, maxx-2);
+	mvwprintw(scr, maxy-2, 2, "TAB:Switch F2:Path F3:Quit F4:Exec F5:Edit");
+	manager.status = derwin(scr, 1, maxx-4, maxy-1, 2);
 	refresh();
 
 	int margin = 0;
 	if(maxx % 2 == 0) margin = 1;
 	win_left.head = derwin(scr, 1, maxx/2-4, 0, 2);
 	win_right.head = derwin(scr, 1, maxx/2-4-margin, 0, maxx/2+2);
-	win_left.list = derwin(scr, maxy-2, maxx/2-1, 1, 1);
-	win_right.list = derwin(scr, maxy-2, maxx/2-1-margin, 1, maxx/2+1);
+	win_left.list = derwin(scr, maxy-3, maxx/2-1, 1, 1);
+	win_right.list = derwin(scr, maxy-3, maxx/2-1-margin, 1, maxx/2+1);
 	win_left.dir = calloc(sizeof(char), BUF_PATH_SIZE);
 	win_right.dir = calloc(sizeof(char), BUF_PATH_SIZE);
 	win_left.outbound = win_left.n = 0;

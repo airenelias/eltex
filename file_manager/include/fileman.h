@@ -35,7 +35,7 @@ typedef struct {
 
 ///Struct that stores parameters manager.
 typedef struct {
-	WINDOW *back;
+	WINDOW *status; ///<	Status window.
 	fileman_win left; ///<	Left manager window.
 	fileman_win right; ///<	Right manager window.
 	int active_win; ///<	Currently active window.\warning Must be 0 or 1 for left or right window respectively.
