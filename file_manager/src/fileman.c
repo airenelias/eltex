@@ -76,8 +76,9 @@ fileman initfileman(fileman_config conf)
 	return manager;
 }
 
-void inputdir(fileman_win *win)
+int inputdir(fileman_win *win)
 {
+	int res = 0;
 	echo();
 	curs_set(1);
 	int ch = -1, curx = 0;
@@ -95,31 +96,44 @@ void inputdir(fileman_win *win)
 	mvwinnstr(win->head, 0, 0, buf, curx);
 	noecho();
 	curs_set(0);
-	setdir(win, buf);
-	printdir(win);
+	if(setdir(win, buf) < 0)
+		return -1;
+	else
+		printdir(win);
 	free(buf);
+	return 0;
 }
 
-void setdir(fileman_win *win, char *dir)
+int setdir(fileman_win *win, char *dir)
 {
 	int i, y;
 	win->outbound = 0;
 	if(win->dir != NULL)
 		chdir(win->dir);
-	chdir(dir);
-	getcwd(win->dir, BUF_PATH_SIZE);
-	win->cur = 0;
-	mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
-	mvwprintw(win->head, 0, 0, "%s", win->dir);
-	wrefresh(win->head);
-	if(win->n > 0)
+	if(chdir(dir) == 0)
 	{
-		for(i=0;i<win->n;i++)
-			free(win->namelist[i]);
-		free(win->namelist);
+		getcwd(win->dir, BUF_PATH_SIZE);
+		win->cur = 0;
+		mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
+		mvwprintw(win->head, 0, 0, "%s", win->dir);
+		wrefresh(win->head);
+		if(win->n > 0)
+		{
+			for(i=0;i<win->n;i++)
+				free(win->namelist[i]);
+			free(win->namelist);
+		}
+		win->n = scandir(".", &win->namelist, NULL, alphasort);
+		return 0;
 	}
-	win->n = scandir(".", &win->namelist, NULL, alphasort);
-	
+	else
+	{
+		getcwd(win->dir, BUF_PATH_SIZE);
+		mvwhline(win->head, 0, 0, ACS_HLINE, getmaxx(win->head));
+		mvwprintw(win->head, 0, 0, "%s", win->dir);
+		wrefresh(win->head);
+		return -1;
+	}
 }
 
 void printdir(fileman_win *win)
@@ -134,6 +148,13 @@ void printdir(fileman_win *win)
 			wattron(win->list, COLOR_PAIR(1));
 		mvwprintw(win->list, y, 0, "%s", win->namelist[i]->d_name);
 	}
+}
+
+void printstatus(fileman* manager, char* status)
+{
+	mvwhline(manager->status, 0, 0, ACS_HLINE, getmaxx(manager->status));
+	wprintw(manager->status, "%s", status);
+	wrefresh(manager->status);
 }
 
 void deselectfileman(fileman_win* win)
@@ -192,7 +213,11 @@ void mainfileman(fileman* manager)
 	while(1) {
 		selectfileman(curwin);
 		ch = wgetch(curwin->list);
-		if(ch == KEY_F(2)) inputdir(curwin);
+		if(ch == KEY_F(2))
+		{
+			if(inputdir(curwin) == 0) printstatus(manager, "Directory changed successfully");
+			else printstatus(manager, "Error when changing directory");
+		}
 		if(ch == KEY_F(3)) break;
 		if(ch == KEY_F(4)) {
 			int pid, wpid;

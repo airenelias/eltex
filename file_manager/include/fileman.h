@@ -65,7 +65,7 @@ fileman initfileman(fileman_config);
 /**Trasfer input to header of selected window for path input.
 \param fileman_win* Currently working window.
 */
-void inputdir(fileman_win*);
+int inputdir(fileman_win*);
 
 /**Main controls function.
 \param fileman* Manager to work with.
@@ -78,15 +78,21 @@ void mainfileman(fileman*);
 void freefileman(fileman*);
 
 /**Set window path and reinitialize window variables.
-\param fileman_win* 	Set directory window.
-\param char* 		Path to set.\warning Input path is relative to current launch directory if not absolute.
+\param fileman_win*	Set directory window.
+\param char*		Path to set.\warning Input path is relative to current launch directory if not absolute.
 */
-void setdir(fileman_win*, char*);
+int setdir(fileman_win*, char*);
 
 /**Print all files in directory set in window.
 \param fileman_win* 	Print directory window.
 */
 void printdir(fileman_win*);
+
+/**Print status into a status line of editor.
+\param fileman*	File manager.
+\param char*	Status string.
+*/
+void printstatus(fileman*, char*);
 
 /**Remove highlight of menu element.
 \param fileman_win* Currently working window.
