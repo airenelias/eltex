@@ -1,5 +1,6 @@
 #include "../include/fileman.h"
 #include "../include/texted.h"
+#include "../include/bashcom.h"
 
 void startfileman(char *dir_left, char *dir_right)
 {
@@ -39,7 +40,7 @@ fileman initfileman(fileman_config conf)
 	mvwaddch(scr, maxy-2, 0, ACS_LTEE);
 	mvwaddch(scr, maxy-2, maxx-1, ACS_RTEE);
 	mvwhline(scr, maxy-2, 1, ACS_HLINE, maxx-2);
-	mvwprintw(scr, maxy-2, 2, "TAB:Switch F2:Path F3:Quit F4:Exec F5:Edit");
+	mvwprintw(scr, maxy-2, 2, "TAB:Switch F2:Path F3:Quit F4:Exec/Bash F5:Edit");
 	manager.status = derwin(scr, 1, maxx-4, maxy-1, 2);
 	refresh();
 
@@ -225,11 +226,10 @@ void mainfileman(fileman* manager)
 			endwin();
 			system("clear");
 			if(pid = fork() == 0) {
-				int err;
-				err = execl(strcat(strcat(curwin->dir, "/"), curwin->namelist[curwin->cur]->d_name), NULL);
-				if(err < 0) {
-					break;
-				}
+				char *com = malloc(1024);
+				scanf("%[^\n]s", com);
+				bashcommand(com);
+				return;
 			}
 			while((wpid = wait(NULL)) > 0);
 			reset_prog_mode();

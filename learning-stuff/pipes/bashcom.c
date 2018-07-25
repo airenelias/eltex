@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <malloc.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include "../include/bashcom.h"
 
-int main()
+int bashcommand(char *command)
 {
 	int fd[2];
 	int i;
@@ -17,7 +11,6 @@ int main()
 	int cmdpos[32];
 	int cmdposcar=0;
 	char **cmd_tokens = malloc(size * sizeof(char**));
-	char *command = malloc(1024);
 	scanf("%[^\n]s", command);
 	char *token;
 	token = strtok(command, " ");
@@ -57,7 +50,7 @@ int main()
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
-	    	sprintf(path, "%s%d", "pipe", i);
+	    	sprintf(path, "%s%d", ".pipe", i);
 			mkfifo(path, S_IRWXU);
 	    }
 
@@ -67,9 +60,9 @@ int main()
 			{
 				int fd_w, fd_r;
 
-				sprintf(path, "%s%d", "pipe", i);
+				sprintf(path, "%s%d", ".pipe", i);
 				fd_w = open(path, O_WRONLY);
-				sprintf(path, "%s%d", "pipe", i-1);
+				sprintf(path, "%s%d", ".pipe", i-1);
 				fd_r = open(path, O_RDONLY);
 
 				if(fd_w >= 0)
@@ -88,15 +81,17 @@ int main()
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
-	    	sprintf(path, "%s%d", "pipe", i);
+	    	sprintf(path, "%s%d", ".pipe", i);
 	    	unlink(path);
 	    }
+	    free(command);
+	    free(cmd_tokens);
 	    free(path);
-
 	    dup2(def_inpipe, 0);
 	    dup2(def_outpipe, 1);
 	    close(def_inpipe);
 	    close(def_outpipe);
+	    getchar();
 	}
 	return 0;
 }
