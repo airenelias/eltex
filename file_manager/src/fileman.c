@@ -254,7 +254,8 @@ void mainfileman(fileman* manager)
 				freefileman(manager);
 				return;
 			}
-			while((wpid = wait(NULL)) > 0);
+			waitpid(pid, NULL, 0);
+			//while((wpid = wait(NULL)) > 0);
 			reset_prog_mode();
 			free(com);
 		}

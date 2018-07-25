@@ -1,15 +1,16 @@
 #include "bashcom.h"
 
-int bashcommand(char *command)
+int main()
 {
-	int res = 0;
 	int i;
 	int size = 0;
 	pid_t pid;
 
-	int cmdpos[BUF_MAX_COM];
+	int cmdpos[32];
 	int cmdposcar=0;
+	char *command = malloc(1024);
 	char **cmd_tokens = malloc(size * sizeof(char**));
+	scanf("%[^\n]s", command);
 	char *token;
 	token = strtok(command, " ");
 	if(token != NULL) {
@@ -35,10 +36,8 @@ int bashcommand(char *command)
 
     if(cmdposcar == 1) //if single command
     {
-    	if(pid = fork() == 0) {
+    	if(pid = fork() == 0)
 			execvp(cmd_tokens[0], cmd_tokens);
-			return -1; //if failed
-    	}
 		else
 			waitpid(pid, NULL, 0);
     }
@@ -46,7 +45,7 @@ int bashcommand(char *command)
     {
 	    int def_inpipe = dup(0);
 	    int def_outpipe = dup(1);
-	    char *path = malloc(BUF_PATH_SIZE);
+	    char *path = malloc(1024);
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
@@ -74,8 +73,8 @@ int bashcommand(char *command)
 				else
 					dup2(def_inpipe, 0);
 				
-				execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]); //pointer to cmd_tokens[] position in **cmd_tokens
-				return -1; //if failed
+				if(execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]) < 0) //pointer to cmd_tokens[] position in **cmd_tokens
+					break;
 			}
 	    }
 	    while(wait(NULL)>0);

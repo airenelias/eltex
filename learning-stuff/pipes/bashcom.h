@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "fileman.h"
+#include "../../file_manager/include/fileman.h"
 
 #ifndef BASHCOM_H
 #define BASHCOM_H
