@@ -40,8 +40,8 @@ fileman initfileman(fileman_config conf)
 	mvwaddch(scr, maxy-2, 0, ACS_LTEE);
 	mvwaddch(scr, maxy-2, maxx-1, ACS_RTEE);
 	mvwhline(scr, maxy-2, 1, ACS_HLINE, maxx-2);
-	mvwprintw(scr, maxy-2, 2, "TAB:Switch F2:Path F3:Quit F4:Exec/Bash F5:Edit");
-	manager.status = derwin(scr, 1, maxx-4, maxy-1, 2);
+	manager.status = derwin(scr, 1, maxx-4, maxy-2, 2);
+	mvwprintw(scr, maxy-1, 2, "TAB:Switch F2:Path F3:Quit F4:Exec/Bash F5:Edit");
 	refresh();
 
 	int margin = 0;
@@ -79,7 +79,6 @@ fileman initfileman(fileman_config conf)
 
 int inputdir(fileman_win *win)
 {
-	int res = 0;
 	echo();
 	curs_set(1);
 	int ch = -1, curx = 0;
@@ -98,7 +97,10 @@ int inputdir(fileman_win *win)
 	noecho();
 	curs_set(0);
 	if(setdir(win, buf) < 0)
+	{
+		free(buf);
 		return -1;
+	}
 	else
 		printdir(win);
 	free(buf);
@@ -202,6 +204,27 @@ void freefileman(fileman* manager)
 	endwin();
 }
 
+char *inputstatus(fileman *win)
+{
+	echo();
+	curs_set(1);
+	int ch = -1, curx = 0;
+	char *buf = malloc(BUF_PATH_SIZE);
+
+	mvwhline(win->status, 0, 0, ACS_HLINE, getmaxx(win->status));
+	wmove(win->status, 0, 0);
+	while(1) {
+		ch = wgetch(win->status);
+		if(ch==10) break;
+		switch(ch) {
+			default: mvaddch(ch, 0, curx); curx++; break;
+		}
+	}
+	mvwinnstr(win->status, 0, 0, buf, curx);
+	noecho();
+	return buf;
+}
+
 void mainfileman(fileman* manager)
 {
 	manager->active_win = 0;
@@ -221,18 +244,19 @@ void mainfileman(fileman* manager)
 		}
 		if(ch == KEY_F(3)) break;
 		if(ch == KEY_F(4)) {
+			char *com = inputstatus(manager);
 			int pid, wpid;
 			def_prog_mode();
 			endwin();
 			system("clear");
 			if(pid = fork() == 0) {
-				char *com = malloc(1024);
-				scanf("%[^\n]s", com);
 				bashcommand(com);
+				freefileman(manager);
 				return;
 			}
 			while((wpid = wait(NULL)) > 0);
 			reset_prog_mode();
+			free(com);
 		}
 		if(ch == KEY_F(5)) {
 			pid_t pid, wpid;
@@ -294,4 +318,5 @@ void mainfileman(fileman* manager)
 		wrefresh(curwin->list);
 	}
 	freefileman(manager);
+	return;
 }

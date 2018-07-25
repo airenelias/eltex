@@ -67,6 +67,12 @@ fileman initfileman(fileman_config);
 */
 int inputdir(fileman_win*);
 
+/**Trasfer input to status window for custom input.
+\param fileman* File manager.
+\return char* Input string.
+*/
+char *inputstatus(fileman *win);
+
 /**Main controls function.
 \param fileman* Manager to work with.
 */

@@ -11,7 +11,6 @@ int bashcommand(char *command)
 	int cmdpos[32];
 	int cmdposcar=0;
 	char **cmd_tokens = malloc(size * sizeof(char**));
-	scanf("%[^\n]s", command);
 	char *token;
 	token = strtok(command, " ");
 	if(token != NULL) {
@@ -74,7 +73,8 @@ int bashcommand(char *command)
 				else
 					dup2(def_inpipe, 0);
 				
-				execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]); //pointer to cmd_tokens[] position in **cmd_tokens
+				if(execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]) < 0) //pointer to cmd_tokens[] position in **cmd_tokens
+					break;
 			}
 	    }
 	    while(wait(NULL)>0);
@@ -91,7 +91,7 @@ int bashcommand(char *command)
 	    dup2(def_outpipe, 1);
 	    close(def_inpipe);
 	    close(def_outpipe);
-	    getchar();
 	}
+	getchar();
 	return 0;
 }
