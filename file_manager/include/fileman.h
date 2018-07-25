@@ -35,7 +35,7 @@ typedef struct {
 
 ///Struct that stores parameters manager.
 typedef struct {
-	WINDOW *back;
+	WINDOW *status; ///<	Status window.
 	fileman_win left; ///<	Left manager window.
 	fileman_win right; ///<	Right manager window.
 	int active_win; ///<	Currently active window.\warning Must be 0 or 1 for left or right window respectively.
@@ -65,7 +65,13 @@ fileman initfileman(fileman_config);
 /**Trasfer input to header of selected window for path input.
 \param fileman_win* Currently working window.
 */
-void inputdir(fileman_win*);
+int inputdir(fileman_win*);
+
+/**Trasfer input to status window for custom input.
+\param fileman* File manager.
+\return char* Input string.
+*/
+char *inputstatus(fileman *win);
 
 /**Main controls function.
 \param fileman* Manager to work with.
@@ -78,15 +84,21 @@ void mainfileman(fileman*);
 void freefileman(fileman*);
 
 /**Set window path and reinitialize window variables.
-\param fileman_win* 	Set directory window.
-\param char* 		Path to set.\warning Input path is relative to current launch directory if not absolute.
+\param fileman_win*	Set directory window.
+\param char*		Path to set.\warning Input path is relative to current launch directory if not absolute.
 */
-void setdir(fileman_win*, char*);
+int setdir(fileman_win*, char*);
 
 /**Print all files in directory set in window.
 \param fileman_win* 	Print directory window.
 */
 void printdir(fileman_win*);
+
+/**Print status into a status line of editor.
+\param fileman*	File manager.
+\param char*	Status string.
+*/
+void printstatus(fileman*, char*);
 
 /**Remove highlight of menu element.
 \param fileman_win* Currently working window.
