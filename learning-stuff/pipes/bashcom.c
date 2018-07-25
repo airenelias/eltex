@@ -2,13 +2,11 @@
 
 int bashcommand(char *command)
 {
-	int fd[2];
 	int i;
 	int size = 0;
 	pid_t pid;
-	pipe(fd);
 
-	int cmdpos[32];
+	int cmdpos[BUF_MAX_COM];
 	int cmdposcar=0;
 	char **cmd_tokens = malloc(size * sizeof(char**));
 	char *token;
@@ -45,7 +43,7 @@ int bashcommand(char *command)
     {
 	    int def_inpipe = dup(0);
 	    int def_outpipe = dup(1);
-	    char *path = malloc(1024);
+	    char *path = malloc(BUF_PATH_SIZE);
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
