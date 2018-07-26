@@ -47,9 +47,11 @@ int bashcommand(char *command)
 	    int def_inpipe = dup(0);
 	    int def_outpipe = dup(1);
 	    char *path = malloc(BUF_PATH_SIZE);
+	    //int pipes[cmdposcar-1][2];
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
+	    	//pipe(pipes[i]);
 	    	sprintf(path, "%s%d", ".pipe", i);
 			mkfifo(path, S_IRWXU);
 	    }
@@ -58,8 +60,23 @@ int bashcommand(char *command)
 	    {
 	    	if(pid = fork() == 0)
 			{
-				int fd_w, fd_r;
+				/*if(i == 0)
+				{
+					dup2(def_inpipe, 0);
+					dup2(pipes[i][1], 1);
+				}
+				else if(i == cmdposcar - 1)
+				{
+					dup2(pipes[i-1][0], 0);
+					dup2(def_outpipe, 1);
+				}
+				else
+				{
+					dup2(pipes[i-1][0], 0);
+					dup2(pipes[i][1], 1);
+				}*/
 
+				int fd_w, fd_r;
 				sprintf(path, "%s%d", ".pipe", i);
 				fd_w = open(path, O_WRONLY);
 				sprintf(path, "%s%d", ".pipe", i-1);
@@ -73,8 +90,8 @@ int bashcommand(char *command)
 					dup2(fd_r, 0);
 				else
 					dup2(def_inpipe, 0);
-				
-				execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]); //pointer to cmd_tokens[] position in **cmd_tokens
+
+				execvp(cmd_tokens[cmdpos[i]], &cmd_tokens[cmdpos[i]]) < 0; //pointer to cmd_tokens[] position in **cmd_tokens
 				return -1; //if failed
 			}
 	    }
@@ -82,12 +99,12 @@ int bashcommand(char *command)
 
 	    for(i = 0; i < cmdposcar-1; i++)
 	    {
-	    	sprintf(path, "%s%d", ".pipe", i);
-	    	unlink(path);
+	    	//sprintf(path, "%s%d", ".pipe", i);
+	    	//unlink(path);
 	    }
 	    free(command);
 	    free(cmd_tokens);
-	    free(path);
+	    //free(path);
 	    dup2(def_inpipe, 0);
 	    dup2(def_outpipe, 1);
 	    close(def_inpipe);
