@@ -28,6 +28,7 @@ fileman initfileman(fileman_config conf)
 	WINDOW *scr = initscr();
 	getmaxyx(scr, maxy, maxx);
 	cbreak();
+	noecho();
 	curs_set(0);
 	start_color();
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
@@ -254,8 +255,9 @@ void mainfileman(fileman* manager)
 				freefileman(manager);
 				return;
 			}
-			while((wpid = wait(NULL)) > 0);
+			waitpid(pid, NULL, 0);
 			reset_prog_mode();
+			curs_set(0);
 			free(com);
 		}
 		if(ch == KEY_F(5)) {
@@ -270,6 +272,7 @@ void mainfileman(fileman* manager)
 			{
 				while((wpid = wait(NULL)) > 0);
 				printdir(curwin);
+				curs_set(0);
 			}
 		}
 		switch(ch) {
