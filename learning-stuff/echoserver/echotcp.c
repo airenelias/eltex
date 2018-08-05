@@ -36,9 +36,9 @@ int main()
 	sockaddr.sin_port = htons(3110);
 	inet_aton("127.0.0.1", &sockaddr.sin_addr);
 	bind(*sfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
+	listen(*sfd, 1);
 	while(1)
 	{
-		listen(*sfd, 1);
 		socklen_t addrlen = sizeof(sockaddr);
 		int cfd = accept(*sfd, (struct sockaddr*)&sockaddr, &addrlen);
 		recv(cfd, buf, 256, 0);
