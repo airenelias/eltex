@@ -8,12 +8,12 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define QS_SOCKNUM 1
+#define QS_SOCKNUM 3
 #define QS_MSGLEN 256
 
 int *sfd;
 pthread_t *tid;
-pthread_t *addtid;
+//pthread_t *addtid;
 char *buf;
 struct queue msgqueue;
 pthread_spinlock_t spinlock;
@@ -24,6 +24,9 @@ void finish(int sig)
 	for(i = 0; i<QS_SOCKNUM; i++)
 	{
 		pthread_cancel(tid[i]);
+	}
+	for(i = 0; i<QS_SOCKNUM+1; i++)
+	{
 		close(sfd[i]);
 	}
 	pthread_spin_destroy(&spinlock);
@@ -44,23 +47,22 @@ struct queue {
 	struct queue_item *tail;
 };
 
-void *addtoqueue(void *vmsg)
+/*void *addtoqueue(void *vmsg)
 {
 	struct queue_item *msg = vmsg; 
 	printf("RECV: %4s FROM %d\n", msg->buf, msg->client.sin_port);
+	pthread_spin_lock(&spinlock);
 	if(msgqueue.head == NULL) {
-		//pthread_spin_lock(&spinlock);
 		msgqueue.head = msg;
 		msgqueue.tail = msgqueue.head;
-		//pthread_spin_unlock(&spinlock);
+		pthread_spin_unlock(&spinlock);
 	}
 	else {
-		pthread_spin_lock(&spinlock);
 		msgqueue.tail->next = msg;
 		msgqueue.tail = msgqueue.tail->next;
 		pthread_spin_unlock(&spinlock);
 	}
-}
+}*/
 
 void *queuehandler(void *vsocket)
 {
@@ -97,8 +99,8 @@ int main()
 	struct sockaddr_in sockaddr;
 	int i, snum;
 	tid = malloc(QS_SOCKNUM * sizeof(pthread_t));
-	addtid = malloc(1000 * sizeof(pthread_t));
-	sfd = malloc(QS_SOCKNUM * sizeof(int));
+	//addtid = malloc(1000 * sizeof(pthread_t));
+	sfd = malloc((QS_SOCKNUM+1) * sizeof(int));
 	buf = malloc(QS_MSGLEN);
 	msgqueue.head = NULL;
 	msgqueue.tail = NULL;
@@ -119,7 +121,7 @@ int main()
 		bind(sfd[snum], (struct sockaddr*)&sockaddr, sizeof(sockaddr));
 		pthread_create(&tid[i], NULL, queuehandler, &sfd[snum]);
 	}
-	i=0;
+	//i=0;
 	while(1)
 	{
 		socklen_t addrlen = sizeof(sockaddr);
@@ -130,8 +132,18 @@ int main()
 		strcpy(msg->buf, buf);
 		msg->client = sockaddr;
 		msg->next = NULL;
-		pthread_create(&addtid[i], NULL, addtoqueue, msg);
-		i++;
-		//pthread_join(addtid, NULL);
+		pthread_spin_lock(&spinlock);
+		if(msgqueue.head == NULL) {
+			msgqueue.head = msg;
+			msgqueue.tail = msgqueue.head;
+			pthread_spin_unlock(&spinlock);
+		}
+		else {
+			msgqueue.tail->next = msg;
+			msgqueue.tail = msgqueue.tail->next;
+			pthread_spin_unlock(&spinlock);
+		}
+		//pthread_create(&addtid[i], NULL, addtoqueue, msg);
+		//i++;
 	}
 }
