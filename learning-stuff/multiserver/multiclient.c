@@ -13,9 +13,9 @@ struct sockaddr_in sockaddr;
 
 void finish(int sig)
 {
-	socklen_t addrlen = sizeof(sockaddr);
-	sprintf(buf, "%s", "QUIT");
-	sendto(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, addrlen);
+	//socklen_t addrlen = sizeof(sockaddr);
+	//sprintf(buf, "%s", "QUIT");
+	//sendto(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, addrlen);
 	close(*sfd);
 	free(sfd);
 	free(buf);
@@ -33,10 +33,10 @@ int main()
 	sigaction(SIGINT, &act, NULL);
 
 	int i=0;
-	while(i!=2000)
+	while(i!=500)
 	{
-		fflush(stdout);
 		//getchar();
+		usleep(1000);
 		i++;
 		pid_t pid;
 		if(pid=fork()==0)
@@ -48,22 +48,21 @@ int main()
 			sockaddr.sin_port = htons(3110);
 			inet_aton("127.0.0.1", &sockaddr.sin_addr);
 
-			printf("INPUT NAME: ");
+			//printf("INPUT NAME: ");
 			sprintf(buf, "%d",i);
 			//scanf(" %[^\n]s", buf);
 			socklen_t addrlen = sizeof(sockaddr);
 			sendto(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, addrlen);
 			recvfrom(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, &addrlen);
-			printf("%s", buf);
-			while(1)
-			{
-				sprintf(buf, "%d",i);
-				//scanf(" %[^\n]s", buf);
-				sendto(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, addrlen);
-				recvfrom(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, &addrlen);
-				printf("%s\n", buf);
-				sleep(100);
-			}
+			printf("%s\n", buf);
+
+			/*sprintf(buf, "%d",i);
+			//scanf(" %[^\n]s", buf);
+			sendto(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, addrlen);
+			recvfrom(*sfd, buf, 256, 0, (struct sockaddr*)&sockaddr, &addrlen);
+			printf("%s\n", buf);*/
+			//sleep(10);
+			raise(SIGINT);
 		}
 	}
 }
