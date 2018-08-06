@@ -16,7 +16,8 @@ pthread_t *tid;
 //pthread_t *addtid;
 char *buf;
 struct queue msgqueue;
-pthread_spinlock_t spinlock;
+//pthread_mutex_t spinlock;
+pthread_spinlock_t spinlock; //valgrind 3.13 wont lock spinlock?
 
 void finish(int sig)
 {
@@ -24,11 +25,13 @@ void finish(int sig)
 	for(i = 0; i<QS_SOCKNUM; i++)
 	{
 		pthread_cancel(tid[i]);
+		pthread_join(tid[i], NULL);
 	}
 	for(i = 0; i<QS_SOCKNUM+1; i++)
 	{
 		close(sfd[i]);
 	}
+	//pthread_mutex_destroy(&spinlock);
 	pthread_spin_destroy(&spinlock);
 	free(sfd);
 	free(tid);
@@ -70,11 +73,14 @@ void *queuehandler(void *vsocket)
 	struct queue_item *msg;
 	while(1)
 	{
+		pthread_testcancel();
+		//pthread_mutex_lock(&spinlock);
 		pthread_spin_lock(&spinlock);
 		if(msgqueue.head != NULL)
 		{
 			msg = msgqueue.head;
 			msgqueue.head = msgqueue.head->next;
+			//pthread_mutex_unlock(&spinlock);
 			pthread_spin_unlock(&spinlock);
 			sendto(*socket, msg->buf, QS_MSGLEN, 0, (struct sockaddr*)&msg->client, sizeof(msg->client));
 			printf("SENT: %4s  TO  %d\n", msg->buf, msg->client.sin_port);
@@ -82,6 +88,7 @@ void *queuehandler(void *vsocket)
 			free(msg);
 		}
 		else
+			//pthread_mutex_unlock(&spinlock);
 			pthread_spin_unlock(&spinlock);
 	}
 }
@@ -99,11 +106,11 @@ int main()
 	struct sockaddr_in sockaddr;
 	int i, snum;
 	tid = malloc(QS_SOCKNUM * sizeof(pthread_t));
-	//addtid = malloc(1000 * sizeof(pthread_t));
 	sfd = malloc((QS_SOCKNUM+1) * sizeof(int));
 	buf = malloc(QS_MSGLEN);
 	msgqueue.head = NULL;
 	msgqueue.tail = NULL;
+	//pthread_mutex_init(&spinlock, NULL);
 	pthread_spin_init(&spinlock, PTHREAD_PROCESS_SHARED);
 
 	sfd[0] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -121,7 +128,6 @@ int main()
 		bind(sfd[snum], (struct sockaddr*)&sockaddr, sizeof(sockaddr));
 		pthread_create(&tid[i], NULL, queuehandler, &sfd[snum]);
 	}
-	//i=0;
 	while(1)
 	{
 		socklen_t addrlen = sizeof(sockaddr);
@@ -133,19 +139,20 @@ int main()
 		msg->client = sockaddr;
 		msg->next = NULL;
 		printf("RECV: %4s FROM %d\n", msg->buf, msg->client.sin_port);
+		//pthread_mutex_lock(&spinlock);
 		pthread_spin_lock(&spinlock);
 		printf("RECV: %4s FROM %d\n", msg->buf, msg->client.sin_port);
 		if(msgqueue.head == NULL) {
 			msgqueue.head = msg;
 			msgqueue.tail = msgqueue.head;
+			//pthread_mutex_unlock(&spinlock);
 			pthread_spin_unlock(&spinlock);
 		}
 		else {
 			msgqueue.tail->next = msg;
 			msgqueue.tail = msgqueue.tail->next;
+			//pthread_mutex_unlock(&spinlock);
 			pthread_spin_unlock(&spinlock);
 		}
-		//pthread_create(&addtid[i], NULL, addtoqueue, msg);
-		//i++;
 	}
 }
