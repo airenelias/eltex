@@ -63,13 +63,14 @@ fileman_config initfilemanparams(char*, char*);
 fileman initfileman(fileman_config);
 
 /**Trasfer input to header of selected window for path input.
-\param fileman_win* Currently working window.
+\param fileman_win*	Currently working window.
+\return int			Return 0 if successfull, -1 if not.
 */
 int inputdir(fileman_win*);
 
 /**Trasfer input to status window for custom input.
 \param fileman* File manager.
-\return char* Input string.
+\return char*	Input string.
 */
 char *inputstatus(fileman *win);
 
@@ -86,6 +87,7 @@ void freefileman(fileman*);
 /**Set window path and reinitialize window variables.
 \param fileman_win*	Set directory window.
 \param char*		Path to set.\warning Input path is relative to current launch directory if not absolute.
+\return int 		Return 0 if successfull, -1 if not.
 */
 int setdir(fileman_win*, char*);
 
