@@ -38,6 +38,7 @@ void starttexted(char*, char*, int, int, int);
 \param char* Append string.
 \param int Cursor Y position.
 \param int Cursor X position.
+\return Text editor configuration struct.
 */
 texted_config inittextedparams(char*, char*, int, int);
 
