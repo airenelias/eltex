@@ -132,7 +132,9 @@ int main()
 		strcpy(msg->buf, buf);
 		msg->client = sockaddr;
 		msg->next = NULL;
+		printf("RECV: %4s FROM %d\n", msg->buf, msg->client.sin_port);
 		pthread_spin_lock(&spinlock);
+		printf("RECV: %4s FROM %d\n", msg->buf, msg->client.sin_port);
 		if(msgqueue.head == NULL) {
 			msgqueue.head = msg;
 			msgqueue.tail = msgqueue.head;
