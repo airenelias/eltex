@@ -43,9 +43,9 @@ int main()
 	{
 		memset(buf, 0, MAX_STR_LEN);
 		socklen_t addrlen = sizeof(sockaddr);
-		recvfrom(*sfd, buf, UDP_RESERVE, 0, (struct sockaddr*)&sockaddr, &addrlen);
+		recvfrom(*sfd, buf, UDP_RESERVE, 0, (struct sockaddr*)&sockaddr, &addrlen); //get message string
 		printf("RECIEVED: %s\n", buf);
 		sprintf(buf, "%d", (int)strlen(buf));
-		sendto(*sfd, buf, (int)strlen(buf), 0, (struct sockaddr*)&sockaddr, addrlen);
+		sendto(*sfd, buf, (int)strlen(buf), 0, (struct sockaddr*)&sockaddr, addrlen); //return message string length
 	}
 }
