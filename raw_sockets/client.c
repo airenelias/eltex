@@ -4,12 +4,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <malloc.h>
+#include <net/if.h>
+#include <linux/if_ether.h>
+#include <linux/if_packet.h>
 
 #define MAX_STR_LEN 1024
 #define UDP_RESERVE 2048
 
-#define IP_SRC "127.0.0.1"
-#define IP_DST "127.0.0.1"
+#define IP_SRC "192.168.1.24"
+#define IP_DST "192.168.1.25"
 #define PORT_SRC 3111
 #define PORT_DST 3110
 
@@ -34,6 +37,12 @@ struct ip_header {
 	unsigned short int csum;
 	unsigned int ip_src;
 	unsigned int ip_dst;
+};
+
+struct mac_header {
+	unsigned char mac_dst[ETH_ALEN];
+	unsigned char mac_src[ETH_ALEN];
+	unsigned short int type;
 };
 
 unsigned short int csum_calc(unsigned short int *addr, unsigned int count) {
@@ -61,9 +70,18 @@ char *get_ip(int ip)
 
 int print_packet(void *rcv_packet)
 {
-	struct ip_header *packet_ip_head = rcv_packet;
-	struct udp_header *packet_udp_head = rcv_packet + sizeof(struct ip_header);
+	int i;
+	struct mac_header *packet_mac_head = rcv_packet;
+	struct ip_header *packet_ip_head = rcv_packet + sizeof(struct mac_header);
+	struct udp_header *packet_udp_head = rcv_packet + sizeof(struct mac_header) + sizeof(struct ip_header);
 	if(ntohs(packet_udp_head->port_dst) == PORT_SRC) {
+		printf("ETH Header:\n");
+		printf(" Destination MAC: ");
+		for(i=0; i<ETH_ALEN; i++) printf("%d:", packet_mac_head->mac_dst[i]);
+		printf("\n Source MAC: ");
+		for(i=0; i<ETH_ALEN; i++) printf("%d:", packet_mac_head->mac_src[i]);
+		printf("\n Type: %d\n", packet_mac_head->type);
+
 		printf("IPv4 Header:\n");
 		printf(" Version: %d\n", packet_ip_head->version);
 		printf(" IHL: %d\n", packet_ip_head->ihl);
@@ -89,7 +107,7 @@ int print_packet(void *rcv_packet)
 		printf(" Length: %d\n", ntohs(packet_udp_head->len));
 		printf(" Checksum: %d\n", packet_udp_head->csum);
 
-		char *data = rcv_packet + sizeof(struct ip_header) + sizeof(struct udp_header);
+		char *data = rcv_packet + sizeof(struct mac_header) + sizeof(struct ip_header) + sizeof(struct udp_header);
 		printf("Data:\n%.*s\n", (int)(ntohs(packet_udp_head->len) - sizeof(struct udp_header)), data);
 		return 0;
 	}
@@ -101,26 +119,37 @@ int main()
 {
 	char *buf = malloc(MAX_STR_LEN);
 	int flag = 1;
-	struct sockaddr_in sockaddr;
-	int sfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+	struct sockaddr_ll sockaddr;
+	int sfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if(sfd == -1) {
 		perror("Can't create raw socket");
 		return -1;
 	}
-	sockaddr.sin_family = AF_INET;
-	sockaddr.sin_port = htons(PORT_DST);
-	inet_aton(IP_DST, &sockaddr.sin_addr);
-	setsockopt(sfd, IPPROTO_IP, IP_HDRINCL, &flag, sizeof(flag));
+	char mac_str_dst[ETH_ALEN] = {0x08, 0x00, 0x27, 0x00, 0x00, 0x01};
+	char mac_str_src[ETH_ALEN] = {0x08, 0x00, 0x27, 0x00, 0x00, 0x00};
+
+	sockaddr.sll_family = AF_PACKET;
+	sockaddr.sll_protocol = htons(ETH_P_IP);
+	sockaddr.sll_ifindex = if_nametoindex("enp0s8");
+	sockaddr.sll_halen = ETH_ALEN;
+	memcpy(sockaddr.sll_addr, mac_str_src, ETH_ALEN);
 	socklen_t addrlen = sizeof(sockaddr);
 	//get message
 	scanf("%[^\n]s", buf);
+	int packet_len = strlen(buf);
+	//eth header
+	packet_len += sizeof(struct mac_header);
+	struct mac_header machead;
+	memcpy(machead.mac_dst, mac_str_dst, ETH_ALEN);
+	memcpy(machead.mac_src, mac_str_src, ETH_ALEN);
+	machead.type = htons(ETH_P_IP);
 	//udp header
-	int packet_len = sizeof(struct udp_header) + strlen(buf);
+	packet_len += sizeof(struct udp_header);
 	struct udp_header udphead;
 	udphead.port_src = htons(PORT_SRC);
 	udphead.port_dst = htons(PORT_DST);
 	udphead.csum = 0;
-	udphead.len = htons(packet_len);
+	udphead.len = htons(packet_len - sizeof(struct mac_header));
 	//ip header
 	packet_len += sizeof(struct ip_header);
 	struct ip_header iphead;
@@ -128,7 +157,7 @@ int main()
 	iphead.version = 4;
 	iphead.dscp = 0;
 	iphead.ecn = 0;
-	iphead.total_len = htons(packet_len);
+	iphead.total_len = htons(packet_len - sizeof(struct mac_header));
 	iphead.identification = htons(1234);
 	iphead.flags = 0;
 	iphead.offset = 0;
@@ -141,9 +170,10 @@ int main()
 	//concat packet
 	void *snd_packet = malloc(packet_len);
 	void *rcv_packet = malloc(UDP_RESERVE);
-	memcpy(snd_packet, &iphead, sizeof(iphead));
-	memcpy(snd_packet + sizeof(iphead), &udphead, sizeof(udphead));
-	memcpy(snd_packet + sizeof(iphead) + sizeof(udphead), buf, strlen(buf));
+	memcpy(snd_packet, &machead, sizeof(machead));
+	memcpy(snd_packet + sizeof(machead), &iphead, sizeof(iphead));
+	memcpy(snd_packet + sizeof(machead) + sizeof(iphead), &udphead, sizeof(udphead));
+	memcpy(snd_packet + sizeof(machead) + sizeof(iphead) + sizeof(udphead), buf, strlen(buf));
 	//send
 	sendto(sfd, snd_packet, packet_len, 0, (struct sockaddr*)&sockaddr, addrlen);
 	do {
