@@ -37,7 +37,7 @@ int main()
 	*sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(3110);
-	inet_aton("127.0.0.1", &sockaddr.sin_addr);
+	inet_aton("192.168.1.25", &sockaddr.sin_addr);
 	bind(*sfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
 	while(1)
 	{
