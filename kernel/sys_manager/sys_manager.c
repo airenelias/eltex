@@ -1,7 +1,7 @@
 #include <linux/init.h> //init / exit
 #include <linux/module.h> //module
 #include <linux/sysfs.h> //proc fs
-#include <linux/uaccess.h> //copy to userspace
+#include <linux/fs.h> //copy to userspace
 #include <linux/kernel.h> //kstrtoint
 
 #define SYS_ENTRY_FILENAME "bufint"
@@ -49,22 +49,26 @@ static void __exit sys_manager_exit(void) {
 }
 
 static ssize_t sys_manager_read(struct kobject *kobj, struct kobj_attribute *attr, char *buf) {
-	//static char num_buf[MAX_DIGITS];
+	//char num_buf[MAX_DIGITS];
+	//int err = 0;
+	//loff_t pos = 0;
 	sprintf(buf, "%d", numeric_buffer);
-	//if(copy_to_user(buf, num_buf, MAX_DIGITS) != 0) {
-	//	printk(KERN_ERR "sys_manager: Data read failed\n");
+	//err = simple_read_from_buffer(buf, MAX_DIGITS, &pos, num_buf, MAX_DIGITS);
+	//if(err != 0) {
+	//	printk(KERN_ERR "sys_manager: Data read failed:%d\n", err);
 	//	return -EFAULT;
 	//}
-	printk(KERN_INFO "sys_manager: Data was read %s\n", buf);
+	printk(KERN_INFO "sys_manager: Data was read: %s\n", buf);
 	return MAX_DIGITS;
 }
 
 static ssize_t sys_manager_write(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count) {
-	//static char num_buf[MAX_DIGITS];
-	//if(count == 0 || count > MAX_DIGITS)
-	//	count = MAX_DIGITS;
-	//if(copy_from_user(num_buf, buf, count) != 0) {
-	//	printk(KERN_ERR "sys_manager: Data write failed\n");
+	//char num_buf[MAX_DIGITS];
+	//int err = 0;
+	//loff_t pos = 0;
+	//err = simple_write_to_buffer(num_buf, MAX_DIGITS, &pos, buf, count);
+	//if(err != 0) {
+	//	printk(KERN_ERR "sys_manager: Data write failed:%d\n", err);
 	//	return -EFAULT;
 	//}
 	if(kstrtoint(buf, 10, &numeric_buffer) != 0) {
@@ -72,7 +76,7 @@ static ssize_t sys_manager_write(struct kobject *kobj, struct kobj_attribute *at
 		return -EFAULT;
 	}
 	printk(KERN_INFO "sys_manager: Data was written: %d\n", numeric_buffer);
-	return MAX_DIGITS;
+	return count;
 }
 
 module_init(sys_manager_init);
